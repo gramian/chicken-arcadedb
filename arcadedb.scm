@@ -33,8 +33,7 @@
    a-load
    a-backup
    a-check
-   a-comment
-  )
+   a-comment)
 
   (import scheme (chicken base) (chicken io) (chicken string) (chicken process) (chicken pathname) uri-common medea)
 
@@ -113,7 +112,7 @@
 
 ;;; Server Connection ##########################################################
 
-;;@returns: **boolean** answering if connection to server using **string**s `user`, `pass`, `host`, and optionally **number** `port` was succesful.
+;;@returns: **boolean** answering if connection to server using **string**s `user`, `pass`, `host`, and optionally **number** `port` was succesful; see @1.
 (define (a-connect user pass host . port)
   (assert (and (string? user) (string? pass) (string? host)))
   (server (string-append "http://" user ":" pass "@" host ":" (number->string (optional port 2480)) "/api/v1/"))
@@ -126,7 +125,7 @@
   (assert (server))
   (http 'get '("server")))
 
-;;@returns: **boolean** answering if the server is ready.
+;;@returns: **boolean** answering if the server is ready; see @2.
 (define (a-healthy?)
   (not (not (a-status))))
 
@@ -185,7 +184,7 @@
   (result (http 'post `("command/" ,(symbol->string db)) body: `((language . ,(symbol->string lang))
                                                                  (command . ,cmd)))))
 
-;;@returns: **list** holding the result of the last statement of _SQL_ script in **string** `path` to database **symbol** `db`.
+;;@returns: **list** holding the result of the last statement of the _ArcadeDB SQL_ script in **string** `path` to database **symbol** `db`.
 (define (a-script db path)
   (assert (and (string? path) (string=? "sql" (pathname-extension path)) (symbol? db) (server)))
   (result (http 'post `("command/" ,(symbol->string db)) body: `((language . "sqlscript")
@@ -198,7 +197,7 @@
   (let [(res (a-command db 'sql (string-append "IMPORT DATABASE " url)))]
     (and res (not (null? res)) (ok? (car res)))))  
 
-;;@returns: **alist** of type descriptions for database **symbol** `db`.
+;;@returns: **alist** of type descriptions for database **symbol** `db`; see @4.
 (define (a-describe db)
   (a-query db 'sql "SELECT FROM schema:types"))
 
@@ -218,7 +217,7 @@
 (define (a-check db . fix?)
   (a-command db 'sql (string-append "CHECK DATABASE" (if (optional fix? #f) " FIX" ""))))
 
-;;@returns: **string** comment for database **symbol** `db`, or `#t` if **string** `msg` is passed.
+;;@returns: **string** comment for database **symbol** `db`, or `#t` if **string** `msg` is passed; see @5.
 (define (a-comment db . msg)
   (assert (symbol? db))  
   (and (a-command db 'sql (string-append "CREATE DOCUMENT TYPE D IF NOT EXISTS"))
@@ -233,3 +232,13 @@
                               #t))))) 
 
 )
+
+;;@1: https://docs.couchdb.org/en/3.2.2-docs/intro/api.html?highlight=welcome#server
+
+;;@2: https://developers.flur.ee/docs/reference/http/overview/#other-endpoints
+
+;;@3: https://docs.arcadedb.com/#SQL
+
+;;@4: https://impala.apache.org/docs/build/html/topics/impala_describe.html
+
+;;@5: https://impala.apache.org/docs/build/html/topics/impala_comment.html
