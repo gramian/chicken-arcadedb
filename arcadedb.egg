@@ -1,0 +1,12 @@
+;;;; arcadedb.egg
+
+((version "1")
+ (synopsis "An ArcadeDB database driver for CHICKEN Scheme.")
+ (author "Christian Himpe")
+ (category db)
+ (license "ZLIB-Acknowledgement")
+ (dependencies uri-common medea)
+ (foreign-dependencies curl)
+ (platform (not windows))
+ (components (extension arcadedb (csc-options "-O3" "-d0" "-C" "-O2")))
+)
