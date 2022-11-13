@@ -1,0 +1,242 @@
+== arcadedb (v1)
+
+{{arcadedb}} is a CHICKEN Scheme egg module providing a driver or REPL
+for the [[https://arcadedb.com|'''ArcadeDB''']] database.
+
+[[toc:]]
+
+== About '''ArcadeDB'''
+
+'''ArcadeDB''' is a multi-model NoSQL database providing graph and document models,
+while supporting a wide range of data query languages, such as:
+
+* [[https://docs.arcadedb.com/#_sql|SQL]] (dialect),
+* [[https://opencypher.org/resources/|Cypher]],
+* [[https://tinkerpop.apache.org/docs/current/|Gremlin]],
+* [[https://graphql.org/|GraphQL]],
+* [[https://www.mongodb.com/docs/manual/|Mongo]]
+
+as well as providing a HTTP/JSON/REST API.
+
+=== SQL
+
+The native query language of '''ArcadeDB''' is a dialect of SQL, closely related to
+''OrientDB'''s OSQL, which supports the [[https://www.geeksforgeeks.org/sql-ddl-dql-dml-dcl-tcl-commands/|SQL command categories]]:
+
+* '''DDL''' - Data Definition Language, via {{CREATE}}, {{DROP}}, {{ALTER}}, {{TRUNCATE}} of {{TYPE}}s
+* '''DQL''' - Data Query Language, via {{SELECT}}, {{TRAVERSE}}, {{MATCH}}
+* '''DML''' - Data Manipulation Language, via {{INSERT}}, {{UPDATE}}, {{DROP}}, {{EXPLAIN}}, {{PROFILE}}
+
+for the remaining categories holds:
+
+* '''DCL''' - Data Control Language, does not apply due to only [[https://docs.arcadedb.com/#Security|server level users]]
+* '''TCL''' - Transaction Control Language, via [[https://docs.arcadedb.com/#HTTP-API|HTTP REST endpoints]]
+
+== About {{arcadedb}}
+
+The {{arcadedb}} module implements a driver and console for '''ArcadeDB''' in
+CHICKEN Scheme with the functionality:
+
+* [[#server-information|Server information]]
+* [[#database-management|Database management]]
+* [[#database-interaction|Database interaction]]
+* [[#database-macros|Database macros]]
+
+=== Dependencies
+
+Naturally, {{arcadedb}} requires a remote or local '''ArcadeDB''' server:
+
+* [[https://github.com/ArcadeData/arcadedb/releases/latest|ArcadeDB]]
+
+which in turn requires a Java distribution, i.e. OpenJDK 11.
+A local server setup is described below.
+Furthermore, the {{arcadedb}} module requires {{curl}} for the HTTP requests:
+
+* [[http://curl.se|curl]]
+
+and imports the {{uri-common}} egg to url-encode strings,
+as well as the {{medea}} egg to decode JSON:
+
+* [[https://wiki.call-cc.org/eggref/5/uri-common|uri-common]]
+* [[https://wiki.call-cc.org/eggref/5/medea|medea]]
+
+== Local Server Setup
+
+A local '''ArcadeDB''' server can be set up via [install](#install) or [container](#container).
+
+=== Install
+
+*# Download package: [[https://github.com/ArcadeData/arcadedb/releases/latest|'''ArcadeDB''' package]]
+*# Extract package: {{tar -xf arcadedb-latest.tar.gz}}
+*# Start server: {{ARCADEDB_HOME=/path/to/arcadedb/ bin/server.sh -Darcadedb.server.rootPassword=mypassword &}}
+*# Exit server: {{kill `cat bin/arcade.pid`}}
+
+=== Container
+
+*# Install [[https://www.docker.com/|Docker]]
+*# Download container: {{docker pull arcadedata/arcadedb}}
+*# Start container: {{docker run --rm -d -p 2480:2480 -e JAVA_OPTS="-Darcadedb.server.rootPassword=mypassword --name arcadedb0 arcadedata/arcadedb}}
+*# Stop container: {{docker stop arcadedb0}}
+
+== Procedures
+
+=== Help Message
+
+==== a-help
+<procedure>(a-help)</procedure>
+
+Returns '''void''', prints help about using the {{arcadedb}} module.
+
+=== Server Connection
+
+==== a-connect
+<procedure>(a-connect user pass host . port)</procedure>
+
+Returns '''boolean''' answering if connection to server using '''string'''s {{user}},
+{{pass}}, {{host}}, and optionally '''number''' {{port}} was succesful;
+returns {{#f}} if a server error occurs or no response is received.
+
+=== Server Information
+
+==== a-status
+<procedure>(a-status)</procedure>
+
+Returns '''list''' holding the cluster configuration of the server;
+returns empty '''list''' {{'()}} if no replicas are configured;
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-healthy?
+<procedure>(a-healthy?)</procedure>
+
+Returns '''boolean''' answering if server is ready.
+
+==== a-list
+<procedure>(a-list)</procedure>
+
+Returns '''list''' of '''symbol'''s holding available databases of the server;
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-version
+<procedure>(a-version)</procedure>
+
+Returns '''string''' version number of the server;
+returns {{#f}} if a server error occurs or no response is received.
+
+=== Database Management
+
+==== a-exist?
+<procedure>(a-exist? db)</procedure>
+
+Returns '''boolean''' answering if database '''symbol''' {{db}} exists of the server.
+
+==== a-create
+<procedure>(a-create db)</procedure>
+
+Returns '''boolean''' that is true if creating new database '''symbol''' {{db}} on the server was succesful;
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-open?
+<procedure>(a-open? db)</procedure>
+
+Returns '''boolean''' answering if database '''symbol''' {{db}} is open on the server.
+
+==== a-open
+<procedure>(a-open db)</procedure>
+
+Returns '''boolean''' that is true if opening database '''symbol''' {{db}} on the server was succesful;
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-close
+<procedure>(a-close db)</procedure>
+
+Returns '''boolean''' that is true if closing database '''symbol''' {{db}} on the server was succesful;
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-drop
+<procedure>(a-drop db)</procedure>
+
+Returns '''boolean''' that is true if deleting database '''symbol''' {{db}} on the server was successful;
+returns {{#f}} if a server error occurs or no response is received.
+
+=== Database Interaction
+
+==== a-query
+<procedure>(a-query db lang query)</procedure>
+
+Returns '''list''' holding the result of '''string''' {{query}} in language '''symbol''' {{lang`}} of database '''symbol''' {{db}};
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-command
+<procedure>(a-command db lang cmd)</procedure>
+
+Returns '''list''' holding the result of '''string''' {{cmd}} in language '''symbol''' {{lang}} to database '''symbol''' {{db}};
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-script
+<procedure>(a-script db path)</procedure>
+
+Returns '''list''' holding the result of the last statement of SQL script in '''string''' {{path}} to database '''symbol''' {{db}};
+returns {{#f}} if a server error occurs or no response is received.
+
+A SQL script file has to have the file extension {{.sql}}.
+
+=== Database Macros
+
+==== a-import
+<procedure>(a-import db url)</procedure>
+
+'''boolean''' that is true if importing from '''string''' {{url}} into database '''symbol''' {{db}} on the server was successful;
+returns {{#f}} if a server error occurs or no response is received.
+
+This function can be a minimalistic ETL (Extract-Transform-Load) tool:
+If one needs to import data from another database with a HTTP API
+and the query can be encoded ([[https://docs.arcadedb.com/#HTTP-API|as for '''ArcadeDB''']]) in the URL,
+the extraction and transformation is performed in the remote query,
+while the loading corresponds to the import of the query result.
+The supported formats are [[https://docs.arcadedb.com/#Importer|OrientDB, Neo4J, GraphML, GraphSON, XML, CSV, JSON, RDF]].
+
+==== a-describe
+<procedure>(a-describe db)</procedure>
+
+Returns '''alist''' of type descriptions for database '''symbol''' {{db}};
+returns {{#f}} if a server error occurs or no response is received.
+
+This function emulates the SQL {{DESCRIBE}} statement.
+
+==== a-load
+<procedure>(a-load db path type)</procedure>
+
+Returns '''boolean''' that is true if loading ''JSON'' file at '''string''' {{path}}
+into database '''symbol''' {{db}} as '''symbol''' {{type}} on the server was successful;
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-backup
+<procedure>(a-backup db)</procedure>
+
+Returns '''boolean''' that is true if backing-up database '''symbol''' {{db}} on the server was successful.
+
+==== a-check
+<procedure>(a-check db)</procedure>
+<procedure>(a-check db fix?)</procedure>
+
+Returns '''list'''-of-'''alist'''s integrity check report, attempts to fix if true '''boolean''' {{fix?}} is passed.
+returns {{#f}} if a server error occurs or no response is received.
+
+==== a-comment
+<procedure>(a-comment db)</procedure>
+<procedure>(a-comment db msg)</procedure>
+
+Returns '''string''' current database comment of database '''symbol''' {{db}}, if {{msg}} is not passed;
+returns {{#t}} if '''string''' {{msg}} was set as comment for database '''symbol''' {{db}} on the server succesfully;
+returns {{#f}} if no comment is set, a server error occurs or no response is received.
+
+This function emulates the SQL {{COMMENT ON DATABASE}} statement,
+by creating a type {{D}} and upserting or reading the first {{comment}} property.
+
+== Changelog
+
+* `1` [[https://github.com/gramian/chicken-arcadedb|Initial Release]] (2022-??-??)
+
+== License
+
+Copyright (c) 2022 ''Christian Himpe'' under [[https://spdx.org/licenses/zlib-acknowledgement.html|zlib-acknowledgement]] license.
