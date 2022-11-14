@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0 (2022-11-14)
+;;@version: 0 (2022-11-15)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme
@@ -237,8 +237,8 @@
 
 ;;@2: Endpoint name inspired by: https://developers.flur.ee/docs/reference/http/overview/#other-endpoints
 
-;;@3: https://docs.arcadedb.com/#SQL
+;;@3: ArcadeDB SQL reference: https://docs.arcadedb.com/#SQL
 
-;;@4: https://impala.apache.org/docs/build/html/topics/impala_describe.html
+;;@4: SQL DESCRIBE comment: https://impala.apache.org/docs/build/html/topics/impala_describe.html
 
-;;@5: https://impala.apache.org/docs/build/html/topics/impala_comment.html
+;;@5: SQL COMMENT command: https://impala.apache.org/docs/build/html/topics/impala_comment.html

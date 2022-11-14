@@ -1,4 +1,4 @@
-arcadedb (v1)
+arcadedb (v0)
 =============
 
 `arcadedb` is a CHICKEN Scheme egg module providing a driver or REPL
@@ -65,7 +65,7 @@ A local **ArcadeDB** server can be set up via [install](#install) or [container]
 
 ### Install
 
-1. Download package: [ArcadeDB **package**](https://github.com/ArcadeData/arcadedb/releases/latest)
+1. Download package: [**ArcadeDB** package](https://github.com/ArcadeData/arcadedb/releases/latest)
 2. Extract package: `tar -xf arcadedb-latest.tar.gz`
 3. Start server: `ARCADEDB_HOME=/path/to/arcadedb/ bin/server.sh -Darcadedb.server.rootPassword=mypassword &` 
 4. Exit server: ``kill `cat bin/arcade.pid` ``
@@ -255,7 +255,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 
 ## Changelog
 
-* `1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-14)
+* `0` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-15)
 
 ## License
 

@@ -1,4 +1,4 @@
-== arcadedb (v1)
+== arcadedb (v0)
 
 {{arcadedb}} is a CHICKEN Scheme egg module providing a driver or REPL
 for the [[https://arcadedb.com|'''ArcadeDB''']] database.
@@ -235,7 +235,7 @@ by creating a type {{D}} and upserting or reading the first {{comment}} property
 
 == Changelog
 
-* `1` [[https://github.com/gramian/chicken-arcadedb|Initial Release]] (2022-??-??)
+* `0` [[https://github.com/gramian/chicken-arcadedb|Initial Release]] (2022-11-15)
 
 == License
 
