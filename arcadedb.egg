@@ -1,6 +1,6 @@
 ;;;; arcadedb.egg
 
-((version "1")
+((version "0.a")
  (synopsis "An ArcadeDB database driver for CHICKEN Scheme.")
  (author "Christian Himpe")
  (category db)

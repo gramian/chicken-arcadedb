@@ -1,10 +1,10 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 1 (2022-??-??)
+;;@version: 0 (2022-11-14)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
-;;@summary: A database driver for ArcadeDB 
+;;@summary: An ArcadeDB database driver for CHICKEN Scheme
 
 (module arcadedb
 
@@ -39,7 +39,7 @@
 
 (print "\n; arcadedb: call `(a-help)` for a procedure overview.\n")
 
-(define-constant version 1)
+(define-constant version 0)
 
 (define server (make-parameter #f))
 
@@ -184,7 +184,7 @@
   (result (http 'post `("command/" ,(symbol->string db)) body: `((language . ,(symbol->string lang))
                                                                  (command . ,cmd)))))
 
-;;@returns: **list** holding the result of the last statement of the _ArcadeDB SQL_ script in **string** `path` to database **symbol** `db`.
+;;@returns: **list** holding the result of the last statement of the _ArcadeDB SQL_ script in **string** `path` to database **symbol** `db`; see @3.
 (define (a-script db path)
   (assert (and (string? path) (string=? "sql" (pathname-extension path)) (symbol? db) (server)))
   (result (http 'post `("command/" ,(symbol->string db)) body: `((language . "sqlscript")
@@ -233,9 +233,9 @@
 
 )
 
-;;@1: https://docs.couchdb.org/en/3.2.2-docs/intro/api.html?highlight=welcome#server
+;;@1: Return value inspired by: https://docs.couchdb.org/en/3.2.2-docs/intro/api.html?highlight=welcome#server
 
-;;@2: https://developers.flur.ee/docs/reference/http/overview/#other-endpoints
+;;@2: Endpoint name inspired by: https://developers.flur.ee/docs/reference/http/overview/#other-endpoints
 
 ;;@3: https://docs.arcadedb.com/#SQL
 

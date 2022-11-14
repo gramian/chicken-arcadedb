@@ -255,7 +255,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 
 ## Changelog
 
-* `1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-??-??)
+* `1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-14)
 
 ## License
 
