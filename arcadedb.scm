@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0 (2022-11-15)
+;;@version: 0.1 (2022-11-15)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme

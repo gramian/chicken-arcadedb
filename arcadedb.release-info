@@ -2,4 +2,4 @@
 
 (uri targz "https://github.com/gramian/chicken-arcadedb/archive/refs/tags/v{egg-release}.tar.gz")
 
-(release "0.a")
+(release "0.1")
