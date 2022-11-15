@@ -1,4 +1,4 @@
-== arcadedb (v0)
+== arcadedb
 
 {{arcadedb}} is a CHICKEN Scheme egg module providing a driver or REPL
 for the [[https://arcadedb.com|'''ArcadeDB''']] database.
@@ -42,7 +42,7 @@ CHICKEN Scheme with the functionality:
 * [[#database-interaction|Database interaction]]
 * [[#database-macros|Database macros]]
 
-=== Dependencies
+=== Runtime Dependencies
 
 Naturally, {{arcadedb}} requires a remote or local '''ArcadeDB''' server:
 
@@ -235,7 +235,8 @@ by creating a type {{D}} and upserting or reading the first {{comment}} property
 
 == Changelog
 
-* `0.1` [[https://github.com/gramian/chicken-arcadedb|Initial Release]] (2022-11-15)
+* {{0.1}} [[https://github.com/gramian/chicken-arcadedb|Initial Release]] (2022-11-15)
+* {{0.2}} [[https://github.com/gramian/chicken-arcadedb|Minor Update]] (2022-11-16)
 
 == License
 

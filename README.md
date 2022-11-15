@@ -41,7 +41,7 @@ CHICKEN Scheme with the functionality:
 * [Database interaction](#database-interaction)
 * [Database macros](#database-macros)
 
-### Dependencies
+### Runtime Dependencies
 
 Naturally, `arcadedb` requires a remote or local **ArcadeDB** server:
 
@@ -256,6 +256,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 ## Changelog
 
 * `0.1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-15)
+* `0.2` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2022-11-16)
 
 ## License
 
