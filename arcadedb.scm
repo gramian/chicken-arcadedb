@@ -112,7 +112,7 @@
 
 ;;; Server Connection ##########################################################
 
-;;@returns: **boolean** answering if connection to server using **string**s `user`, `pass`, `host`, and optionally **number** `port` was succesful; see @1.
+;;@returns: **alist** with single entry if connection to server using **string**s `user`, `pass`, `host`, and optionally **number** `port` was successful; see @1.
 (define (a-connect user pass host . port)
   (assert (and (string? user) (string? pass) (string? host)))
   (server (string-append "http://" user ":" pass "@" host ":" (number->string (optional port 2480)) "/api/v1/"))
@@ -146,7 +146,7 @@
 (define (a-exist? db)
   (not (not (http 'post `("open/" ,(symbol->string db)) notify: #f))))
 
-;;@returns: **boolean** that is true if creating new database **symbol** `db` on the server was succesful.
+;;@returns: **boolean** that is true if creating new database **symbol** `db` on the server was successful.
 (define (a-create db)
   (assert (server))
   (ok? (http 'post `("create/" ,(symbol->string db)))))
@@ -156,12 +156,12 @@
   (assert (server))
   (not (not (http 'get `("query/" ,(symbol->string db) "/sql/SELECT%20true") notify: #f))))
 
-;;@returns: **boolean** that is true if opening database **symbol** `db` on the server was succesful.
+;;@returns: **boolean** that is true if opening database **symbol** `db` on the server was successful.
 (define (a-open db)
   (assert (server))
   (ok? (http 'post `("open/" ,(symbol->string db)))))
 
-;;@returns: **boolean** that is true if closing database **symbol** `db` on the server was succesful.
+;;@returns: **boolean** that is true if closing database **symbol** `db` on the server was successful.
 (define (a-close db)
   (assert (server))
   (ok? (http 'post `("close/" ,(symbol->string db)))))

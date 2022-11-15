@@ -43,7 +43,7 @@ CHICKEN Scheme with the functionality:
 
 ### Runtime Dependencies
 
-Naturally, `arcadedb` requires a remote or local **ArcadeDB** server:
+Naturally, `arcadedb` requires a (running) remote or local **ArcadeDB** server:
 
 * [ArcadeDB](https://github.com/ArcadeData/arcadedb/releases/latest)
 
@@ -53,7 +53,7 @@ Furthermore, the `arcadedb` module requires `curl` for the HTTP requests:
 
 * [curl](http://curl.se)
 
-and imports the `uri-common` egg to url-encode strings,
+during runtime, and imports the `uri-common` egg to url-encode strings,
 as well as the `medea` egg to decode JSON:
 
 * [uri-common](https://wiki.call-cc.org/eggref/5/uri-common)
@@ -93,8 +93,8 @@ Returns **void**, prints help about using the `arcadedb` module.
 ```
 (a-connect user pass host . port)
 ```
-Returns **boolean** answering if connection to server using **string**s `user`,
-`pass`, `host`, and optionally **number** `port` was succesful;
+Returns **alist** with single entry if connection to server using **string**s
+`user`, `pass`, `host`, and optionally **number** `port` was successful;
 returns `#f` if a server error occurs or no response is received.
 
 ### Server Information
@@ -139,7 +139,7 @@ Returns **boolean** answering if database **symbol** `db` exists of the server.
 ```
 (a-create db)
 ```
-Returns **boolean** that is true if creating new database **symbol** `db` on the server was succesful;
+Returns **boolean** that is true if creating new database **symbol** `db` on the server was successful;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-open?
@@ -152,14 +152,14 @@ Returns **boolean** answering if database **symbol** `db` is open on the server.
 ```
 (a-open db)
 ```
-Returns **boolean** that is true if opening database **symbol** `db` on the server was succesful;
+Returns **boolean** that is true if opening database **symbol** `db` on the server was successful;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-close
 ```
 (a-close db)
 ```
-Returns **boolean** that is true if closing database **symbol** `db` on the server was succesful;
+Returns **boolean** that is true if closing database **symbol** `db` on the server was successful;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-drop
@@ -247,7 +247,7 @@ returns `#f` if a server error occurs or no response is received.
 (a-comment db msg)
 ```
 Returns **string** current database comment of database **symbol** `db`, if `msg` is not passed;
-returns `#t` if **string** `msg` was set as comment for database **symbol** `db` on the server succesfully;
+returns `#t` if **string** `msg` was set as comment for database **symbol** `db` on the server successfully;
 returns `#f` if no comment is set, a server error occurs or no response is received.
 
 This function emulates the SQL `COMMENT ON DATABASE` statement,
@@ -261,4 +261,3 @@ by creating a type `D` and upserting or reading the first `comment` property.
 ## License
 
 Copyright (c) 2022 _Christian Himpe_ under [zlib-acknowledgement](https://spdx.org/licenses/zlib-acknowledgement.html) license.
-

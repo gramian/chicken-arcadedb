@@ -44,7 +44,7 @@ CHICKEN Scheme with the functionality:
 
 === Runtime Dependencies
 
-Naturally, {{arcadedb}} requires a remote or local '''ArcadeDB''' server:
+Naturally, {{arcadedb}} requires a running remote or local '''ArcadeDB''' server:
 
 * [[https://github.com/ArcadeData/arcadedb/releases/latest|ArcadeDB]]
 
@@ -54,7 +54,7 @@ Furthermore, the {{arcadedb}} module requires {{curl}} for the HTTP requests:
 
 * [[http://curl.se|curl]]
 
-and imports the {{uri-common}} egg to url-encode strings,
+during runtime, and imports the {{uri-common}} egg to url-encode strings,
 as well as the {{medea}} egg to decode JSON:
 
 * [[https://wiki.call-cc.org/eggref/5/uri-common|uri-common]]
@@ -62,7 +62,7 @@ as well as the {{medea}} egg to decode JSON:
 
 == Local Server Setup
 
-A local '''ArcadeDB''' server can be set up via [install](#install) or [container](#container).
+A local '''ArcadeDB''' server can be set up via [[#install|install]] or [[#container|container]].
 
 === Install
 
@@ -92,8 +92,8 @@ Returns '''void''', prints help about using the {{arcadedb}} module.
 ==== a-connect
 <procedure>(a-connect user pass host . port)</procedure>
 
-Returns '''boolean''' answering if connection to server using '''string'''s {{user}},
-{{pass}}, {{host}}, and optionally '''number''' {{port}} was succesful;
+Returns '''alist''' with single entry if connection to server using '''string'''s
+{{user}}, {{pass}}, {{host}}, and optionally '''number''' {{port}} was successful;
 returns {{#f}} if a server error occurs or no response is received.
 
 === Server Information
@@ -132,7 +132,7 @@ Returns '''boolean''' answering if database '''symbol''' {{db}} exists of the se
 ==== a-create
 <procedure>(a-create db)</procedure>
 
-Returns '''boolean''' that is true if creating new database '''symbol''' {{db}} on the server was succesful;
+Returns '''boolean''' that is true if creating new database '''symbol''' {{db}} on the server was successful;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-open?
@@ -143,13 +143,13 @@ Returns '''boolean''' answering if database '''symbol''' {{db}} is open on the s
 ==== a-open
 <procedure>(a-open db)</procedure>
 
-Returns '''boolean''' that is true if opening database '''symbol''' {{db}} on the server was succesful;
+Returns '''boolean''' that is true if opening database '''symbol''' {{db}} on the server was successful;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-close
 <procedure>(a-close db)</procedure>
 
-Returns '''boolean''' that is true if closing database '''symbol''' {{db}} on the server was succesful;
+Returns '''boolean''' that is true if closing database '''symbol''' {{db}} on the server was successful;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-drop
@@ -227,7 +227,7 @@ returns {{#f}} if a server error occurs or no response is received.
 <procedure>(a-comment db msg)</procedure>
 
 Returns '''string''' current database comment of database '''symbol''' {{db}}, if {{msg}} is not passed;
-returns {{#t}} if '''string''' {{msg}} was set as comment for database '''symbol''' {{db}} on the server succesfully;
+returns {{#t}} if '''string''' {{msg}} was set as comment for database '''symbol''' {{db}} on the server successfully;
 returns {{#f}} if no comment is set, a server error occurs or no response is received.
 
 This function emulates the SQL {{COMMENT ON DATABASE}} statement,
