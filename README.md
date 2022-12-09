@@ -41,13 +41,13 @@ for the remaining categories holds:
 The `arcadedb` module implements a driver and console for **ArcadeDB** in
 _CHICKEN Scheme_ with the functionality:
 
-* [Server connection](#server-connection)
-* [Server information](#server-information)
-* [Server databases](#server-databases)
-* [Database management](#database-management)
-* [Database connection](#database-connection)
-* [Database interaction](#database-interaction)
-* [Database macros](#database-macros)
+* [Server Connection](#server-connection)
+* [Server Information](#server-information)
+* [Server Databases](#server-databases)
+* [Database Management](#database-management)
+* [Database Connection](#database-connection)
+* [Database Interaction](#database-interaction)
+* [Database Macros](#database-macros)
 
 ### Runtime Dependencies
 
@@ -157,7 +157,7 @@ returns `#f` if a server error occurs or no response is received.
 ```
 (a-use db)
 ```
-Returns **boolean** that is true if database **symbol** `db` is connected, or #f;
+Returns **boolean** that is true if database **symbol** `db` is connected;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-using
@@ -237,14 +237,14 @@ The supported formats are [OrientDB, Neo4J, GraphML, GraphSON, XML, CSV, JSON, R
 ```
 (a-stats)
 ```
-Returns **list**-of-**alist**s reporting statistics on current database.
+Returns **list**-of-**alist**s reporting statistics on current database;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-health
 ```
 (a-health)
 ```
-Returns **list**-of-**alist**s reporting health of current database.
+Returns **list**-of-**alist**s reporting health of current database;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-repair
@@ -269,7 +269,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 
 * `0.1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-15)
 * `0.2` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2022-11-16)
-* `0.3` [Major Update](https://github.com/gramian/chicken-arcadedb) (2022-??-??)
+* `0.3` [Major Update](https://github.com/gramian/chicken-arcadedb) (2022-12-09)
 
 ## License
 

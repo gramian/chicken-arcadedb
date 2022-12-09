@@ -43,12 +43,12 @@ The {{arcadedb}} module implements a driver and console for '''ArcadeDB''' in
 ''CHICKEN Scheme'' with the functionality:
 
 * [[#server-connection|Server Connection]]
-* [[#server-information|Server information]]
+* [[#server-information|Server Information]]
 * [[#server-databases|Server Databases]]
-* [[#database-management|Database management]]
-* [[#databse-connection|Database connection]]
-* [[#database-interaction|Database interaction]]
-* [[#database-macros|Database macros]]
+* [[#database-management|Database Management]]
+* [[#databse-connection|Database Connection]]
+* [[#database-interaction|Database Interaction]]
+* [[#database-macros|Database Macros]]
 
 === Runtime Dependencies
 
@@ -149,7 +149,7 @@ returns {{#f}} if a server error occurs or no response is received.
 ==== a-use
 <procedure>(a-use db)</procedure>
 
-Returns '''boolean''' that is true if database '''symbol''' {{db}} is connected, or #f;
+Returns '''boolean''' that is true if database '''symbol''' {{db}} is connected;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-using
@@ -220,13 +220,13 @@ The supported formats are [[https://docs.arcadedb.com/#Importer|OrientDB, Neo4J,
 ==== a-stats
 <procedure>(a-stats)</procedure>
 
-Returns '''list'''-of-'''alist'''s reporting statistics on current database.
+Returns '''list'''-of-'''alist'''s reporting statistics on current database;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-health
 <procedure>(a-health)</procedure>
 
-Returns '''list'''-of-'''alist'''s reporting health of current database.
+Returns '''list'''-of-'''alist'''s reporting health of current database;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-repair
