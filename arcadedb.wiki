@@ -7,16 +7,21 @@ for the [[https://arcadedb.com|'''ArcadeDB''']] database.
 
 == About '''ArcadeDB'''
 
-'''ArcadeDB''' is a multi-model NoSQL database providing graph and document models,
+'''ArcadeDB''' is a multi-model NoSQL database providing the models:
+
+* Key-Value,
+* Document,
+* Graph,
+
 while supporting a wide range of data query languages, such as:
 
 * [[https://docs.arcadedb.com/#_sql|SQL]] (dialect),
 * [[https://opencypher.org/resources/|Cypher]],
 * [[https://tinkerpop.apache.org/docs/current/|Gremlin]],
 * [[https://graphql.org/|GraphQL]],
-* [[https://www.mongodb.com/docs/manual/|Mongo]]
+* [[https://www.mongodb.com/docs/manual/|MQL]] (Mongo)
 
-as well as providing a HTTP/JSON/REST API.
+as well as providing a JSON/REST/HTTP API.
 
 === SQL
 
@@ -35,10 +40,13 @@ for the remaining categories holds:
 == About {{arcadedb}}
 
 The {{arcadedb}} module implements a driver and console for '''ArcadeDB''' in
-CHICKEN Scheme with the functionality:
+''CHICKEN Scheme'' with the functionality:
 
+* [[#server-connection|Server Connection]]
 * [[#server-information|Server information]]
+* [[#server-databases|Server Databases]]
 * [[#database-management|Database management]]
+* [[#databse-connection|Database connection]]
 * [[#database-interaction|Database interaction]]
 * [[#database-macros|Database macros]]
 
@@ -48,7 +56,7 @@ Naturally, {{arcadedb}} requires a running remote or local '''ArcadeDB''' server
 
 * [[https://github.com/ArcadeData/arcadedb/releases/latest|ArcadeDB]]
 
-which in turn requires a Java distribution, i.e. OpenJDK 11.
+which in turn requires a ''Java'' distribution, i.e. ''OpenJDK'', in versions 11 up to 15.
 A local server setup is described below.
 Furthermore, the {{arcadedb}} module requires {{curl}} for the HTTP requests:
 
@@ -93,28 +101,15 @@ Returns '''void''', prints help about using the {{arcadedb}} module.
 <procedure>(a-connect user pass host . port)</procedure>
 
 Returns '''alist''' with single entry if connection to server using '''string'''s
-{{user}}, {{pass}}, {{host}}, and optionally '''number''' {{port}} was successful;
+{{user}}, {{pass}}, {{host}}, and optionally '''number''' {{port}}, succeded;
 returns {{#f}} if a server error occurs or no response is received.
 
 === Server Information
 
-==== a-status
-<procedure>(a-status)</procedure>
-
-Returns '''list''' holding the cluster configuration of the server;
-returns empty '''list''' {{'()}} if no replicas are configured;
-returns {{#f}} if a server error occurs or no response is received.
-
-==== a-healthy?
-<procedure>(a-healthy?)</procedure>
+==== a-ready?
+<procedure>(a-ready?)</procedure>
 
 Returns '''boolean''' answering if server is ready.
-
-==== a-list
-<procedure>(a-list)</procedure>
-
-Returns '''list''' of '''symbol'''s holding available databases of the server;
-returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-version
 <procedure>(a-version)</procedure>
@@ -122,70 +117,97 @@ returns {{#f}} if a server error occurs or no response is received.
 Returns '''string''' version number of the server;
 returns {{#f}} if a server error occurs or no response is received.
 
-=== Database Management
+=== Server Databases
+
+==== a-list
+<procedure>(a-list)</procedure>
+
+Returns '''list''' of '''symbol'''s holding available databases of the server;
+returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-exist?
 <procedure>(a-exist? db)</procedure>
 
-Returns '''boolean''' answering if database '''symbol''' {{db}} exists of the server.
+Returns '''boolean''' answering if database '''symbol''' {{db}} exists on the server.
 
-==== a-create
-<procedure>(a-create db)</procedure>
+=== Database Management
 
-Returns '''boolean''' that is true if creating new database '''symbol''' {{db}} on the server was successful;
+==== a-new
+<procedure>(a-new db)</procedure>
+
+Returns '''boolean''' that is true if creating new database '''symbol''' {{db}} succeded;
 returns {{#f}} if a server error occurs or no response is received.
 
-==== a-open?
-<procedure>(a-open? db)</procedure>
+==== a-delete
+<procedure>(a-delete db)</procedure>
 
-Returns '''boolean''' answering if database '''symbol''' {{db}} is open on the server.
-
-==== a-open
-<procedure>(a-open db)</procedure>
-
-Returns '''boolean''' that is true if opening database '''symbol''' {{db}} on the server was successful;
+Returns '''boolean''' that is true if deleting database '''symbol''' {{db}} osucceded;
 returns {{#f}} if a server error occurs or no response is received.
 
-==== a-close
-<procedure>(a-close db)</procedure>
+=== Database Connection
 
-Returns '''boolean''' that is true if closing database '''symbol''' {{db}} on the server was successful;
+==== a-use
+<procedure>(a-use db)</procedure>
+
+Returns '''boolean''' that is true if database '''symbol''' {{db}} is connected, or #f;
 returns {{#f}} if a server error occurs or no response is received.
 
-==== a-drop
-<procedure>(a-drop db)</procedure>
+==== a-using
+<procedure>(a-using)</procedure>
 
-Returns '''boolean''' that is true if deleting database '''symbol''' {{db}} on the server was successful;
-returns {{#f}} if a server error occurs or no response is received.
+Returns '''symbol''' naming current database;
+returns {{#f}} if no database is connected.
 
 === Database Interaction
 
 ==== a-query
 <procedure>(a-query db lang query)</procedure>
 
-Returns '''list''' holding the result of '''string''' {{query}} in language '''symbol''' {{lang`}} of database '''symbol''' {{db}};
+Returns '''list''' holding the result of '''string''' {{query}} in language '''symbol''' {{lang`}} on current database;
 returns {{#f}} if a server error occurs or no response is received.
 
 ==== a-command
 <procedure>(a-command db lang cmd)</procedure>
 
-Returns '''list''' holding the result of '''string''' {{cmd}} in language '''symbol''' {{lang}} to database '''symbol''' {{db}};
+Returns '''list''' holding the result of '''string''' {{cmd}} in language '''symbol''' {{lang}} to current database;
 returns {{#f}} if a server error occurs or no response is received.
 
-==== a-script
-<procedure>(a-script db path)</procedure>
+=== Database Macros
 
-Returns '''list''' holding the result of the last statement of SQL script in '''string''' {{path}} to database '''symbol''' {{db}};
+==== a-schema
+<procedure>(a-schema)</procedure>
+
+Returns '''alist''' of type descriptions for current database;
+returns {{#f}} if a server error occurs or no response is received.
+
+This function emulates the SQL {{DESCRIBE}} statement.
+
+==== a-script
+<procedure>(a-script path)</procedure>
+
+Returns '''list''' holding the result of the last statement of SQL script in '''string''' {{path}} executed on current database;
 returns {{#f}} if a server error occurs or no response is received.
 
 A SQL script file has to have the file extension {{.sql}}.
 
-=== Database Macros
+==== a-upload
+<procedure>(a-upload path type)</procedure>
 
-==== a-import
-<procedure>(a-import db url)</procedure>
+Returns '''boolean''' that is true if uploading ''JSON'' file at '''string''' {{path}}
+into current database as '''symbol''' {{type}} succeded;
+returns {{#f}} if a server error occurs or no response is received.
 
-'''boolean''' that is true if importing from '''string''' {{url}} into database '''symbol''' {{db}} on the server was successful;
+A JSON script file has to have the file extension {{.json}}.
+
+==== a-backup
+<procedure>(a-backup)</procedure>
+
+Returns '''boolean''' that is true if backing-up current database succeded.
+
+==== a-extract
+<procedure>(a-extract url)</procedure>
+
+'''boolean''' that is true if importing from '''string''' {{url}} into current database succeded;
 returns {{#f}} if a server error occurs or no response is received.
 
 This function can be a minimalistic ETL (Extract-Transform-Load) tool:
@@ -195,39 +217,29 @@ the extraction and transformation is performed in the remote query,
 while the loading corresponds to the import of the query result.
 The supported formats are [[https://docs.arcadedb.com/#Importer|OrientDB, Neo4J, GraphML, GraphSON, XML, CSV, JSON, RDF]].
 
-==== a-describe
-<procedure>(a-describe db)</procedure>
+==== a-stats
+<procedure>(a-stats)</procedure>
 
-Returns '''alist''' of type descriptions for database '''symbol''' {{db}};
+Returns '''list'''-of-'''alist'''s reporting statistics on current database.
 returns {{#f}} if a server error occurs or no response is received.
 
-This function emulates the SQL {{DESCRIBE}} statement.
+==== a-health
+<procedure>(a-health)</procedure>
 
-==== a-load
-<procedure>(a-load db path type)</procedure>
-
-Returns '''boolean''' that is true if loading ''JSON'' file at '''string''' {{path}}
-into database '''symbol''' {{db}} as '''symbol''' {{type}} on the server was successful;
+Returns '''list'''-of-'''alist'''s reporting health of current database.
 returns {{#f}} if a server error occurs or no response is received.
 
-==== a-backup
-<procedure>(a-backup db)</procedure>
+==== a-repair
+<procedure>(a-repair)</procedure>
 
-Returns '''boolean''' that is true if backing-up database '''symbol''' {{db}} on the server was successful.
-
-==== a-check
-<procedure>(a-check db)</procedure>
-<procedure>(a-check db fix?)</procedure>
-
-Returns '''list'''-of-'''alist'''s integrity check report, attempts to fix if true '''boolean''' {{fix?}} is passed.
-returns {{#f}} if a server error occurs or no response is received.
+Returns '''boolean''' that is true if automatic repair succeeded.
 
 ==== a-comment
-<procedure>(a-comment db)</procedure>
-<procedure>(a-comment db msg)</procedure>
+<procedure>(a-comment)</procedure>
+<procedure>(a-comment msg)</procedure>
 
-Returns '''string''' current database comment of database '''symbol''' {{db}}, if {{msg}} is not passed;
-returns {{#t}} if '''string''' {{msg}} was set as comment for database '''symbol''' {{db}} on the server successfully;
+Returns '''string''' current database comment of current database, if {{msg}} is not passed;
+returns {{#t}} if '''string''' {{msg}} was set as comment for current database succeded;
 returns {{#f}} if no comment is set, a server error occurs or no response is received.
 
 This function emulates the SQL {{COMMENT ON DATABASE}} statement,
@@ -237,6 +249,7 @@ by creating a type {{D}} and upserting or reading the first {{comment}} property
 
 * {{0.1}} [[https://github.com/gramian/chicken-arcadedb|Initial Release]] (2022-11-15)
 * {{0.2}} [[https://github.com/gramian/chicken-arcadedb|Minor Update]] (2022-11-16)
+* {{0.3}} [[https://github.com/gramian/chicken-arcadedb|Minor Update]] (2022-??-??)
 
 == License
 

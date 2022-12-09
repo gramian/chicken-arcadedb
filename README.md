@@ -6,16 +6,21 @@ for the [**ArcadeDB**](https://arcadedb.com) database.
 
 ## About **ArcadeDB**
 
-**ArcadeDB** is a multi-model NoSQL database providing graph and document models,
+**ArcadeDB** is a multi-model NoSQL database providing the models:
+
+* Key-Value,
+* Document,
+* Graph,
+
 while supporting a wide range of data query languages, such as:
 
 * [SQL](https://docs.arcadedb.com/#_sql) (dialect),
 * [Cypher](https://opencypher.org/resources/),
 * [Gremlin](https://tinkerpop.apache.org/docs/current/),
 * [GraphQL](https://graphql.org/),
-* [Mongo](https://www.mongodb.com/docs/manual/)
+* [MQL](https://www.mongodb.com/docs/manual/) (Mongo),
 
-as well as providing a HTTP/JSON/REST API.
+as well as providing a JSON/REST/HTTP API.
 
 ### SQL
 
@@ -34,10 +39,13 @@ for the remaining categories holds:
 ## About `arcadedb`
 
 The `arcadedb` module implements a driver and console for **ArcadeDB** in
-CHICKEN Scheme with the functionality:
+_CHICKEN Scheme_ with the functionality:
 
+* [Server connection](#server-connection)
 * [Server information](#server-information)
+* [Server databases](#server-databases)
 * [Database management](#database-management)
+* [Database connection](#database-connection)
 * [Database interaction](#database-interaction)
 * [Database macros](#database-macros)
 
@@ -47,7 +55,7 @@ Naturally, `arcadedb` requires a (running) remote or local **ArcadeDB** server:
 
 * [ArcadeDB](https://github.com/ArcadeData/arcadedb/releases/latest)
 
-which in turn requires a Java distribution, i.e. OpenJDK 11.
+which in turn requires a _Java_ distribution, i.e. _OpenJDK_,  in versions 11 up to 15.
 A local server setup is described below.
 Furthermore, the `arcadedb` module requires `curl` for the HTTP requests:
 
@@ -67,7 +75,7 @@ A local **ArcadeDB** server can be set up via [install](#install) or [container]
 
 1. Download package: [**ArcadeDB** package](https://github.com/ArcadeData/arcadedb/releases/latest)
 2. Extract package: `tar -xf arcadedb-latest.tar.gz`
-3. Start server: `ARCADEDB_HOME=/path/to/arcadedb/ bin/server.sh -Darcadedb.server.rootPassword=mypassword &` 
+3. Start server: `bin/server.sh -Darcadedb.server.rootPassword=mypassword &` 
 4. Exit server: ``kill `cat bin/arcade.pid` ``
 
 ### Container
@@ -94,31 +102,16 @@ Returns **void**, prints help about using the `arcadedb` module.
 (a-connect user pass host . port)
 ```
 Returns **alist** with single entry if connection to server using **string**s
-`user`, `pass`, `host`, and optionally **number** `port` was successful;
+`user`, `pass`, `host`, and optionally **number** `port`, succeded;
 returns `#f` if a server error occurs or no response is received.
 
 ### Server Information
 
-#### a-status
+#### a-ready?
 ```
-(a-status)
-```
-Returns **list** holding the cluster configuration of the server;
-returns empty **list** `'()` if no replicas are configured;
-returns `#f` if a server error occurs or no response is received.
-
-#### a-healthy?
-```
-(a-healthy?)
+(a-ready?)
 ```
 Returns **boolean** answering if server is ready.
-
-#### a-list
-```
-(a-list)
-```
-Returns **list** of **symbol**s holding available databases of the server;
-returns `#f` if a server error occurs or no response is received.
 
 #### a-version
 ```
@@ -127,80 +120,110 @@ returns `#f` if a server error occurs or no response is received.
 Returns **string** version number of the server;
 returns `#f` if a server error occurs or no response is received.
 
-### Database Management
+### Server Databases
+
+#### a-list
+```
+(a-list)
+```
+Returns **list** of **symbol**s holding available databases of the server;
+returns `#f` if a server error occurs or no response is received.
 
 #### a-exist?
 ```
 (a-exist? db)
 ```
-Returns **boolean** answering if database **symbol** `db` exists of the server.
+Returns **boolean** answering if database **symbol** `db` exists on the server.
 
-#### a-create
+### Database Management
+
+#### a-new
 ```
-(a-create db)
+(a-new db)
 ```
-Returns **boolean** that is true if creating new database **symbol** `db` on the server was successful;
+Returns **boolean** that is true if creating new database **symbol** `db` succeded;
 returns `#f` if a server error occurs or no response is received.
 
-#### a-open?
+#### a-delete
 ```
-(a-open? db)
+(a-delete db)
 ```
-Returns **boolean** answering if database **symbol** `db` is open on the server.
-
-#### a-open
-```
-(a-open db)
-```
-Returns **boolean** that is true if opening database **symbol** `db` on the server was successful;
+Returns **boolean** that is true if deleting database **symbol** `db` succeded;
 returns `#f` if a server error occurs or no response is received.
 
-#### a-close
+### Database Connection
+
+#### a-use
 ```
-(a-close db)
+(a-use db)
 ```
-Returns **boolean** that is true if closing database **symbol** `db` on the server was successful;
+Returns **boolean** that is true if database **symbol** `db` is connected, or #f;
 returns `#f` if a server error occurs or no response is received.
 
-#### a-drop
+#### a-using
 ```
-(a-drop db)
+(a-using)
 ```
-Returns **boolean** that is true if deleting database **symbol** `db` on the server was successful;
-returns `#f` if a server error occurs or no response is received.
+Returns **symbol** naming current database;
+returns `#f` if no database is connected.
 
 ### Database Interaction
 
 #### a-query
 ```
-(a-query db lang query)
+(a-query lang query)
 ```
-Returns **list** holding the result of **string** `query` in language **symbol** `lang` of database **symbol** `db`;
+Returns **list** holding the result of **string** `query` in language **symbol** `lang` on current database;
 returns `#f` if a server error occurs or no response is received.
 
 #### a-command
 ```
-(a-command db lang cmd)
+(a-command lang cmd)
 ```
-Returns **list** holding the result of **string** `cmd` in language **symbol** `lang` to database **symbol** `db`;
+Returns **list** holding the result of **string** `cmd` in language **symbol** `lang` on current database;
 returns `#f` if a server error occurs or no response is received.
+
+### Database Macros
+
+#### a-schema
+```
+(a-schema)
+```
+Returns **alist** of type descriptions for current database;
+returns `#f` if a server error occurs or no response is received.
+
+This function emulates the SQL `DESCRIBE` statement.
 
 #### a-script
 ```
-(a-script db path)
+(a-script path)
 ```
-Returns **list** holding the result of the last statement of SQL script in **string** `path` to database **symbol** `db`;
+Returns **list** holding the result of the last statement of SQL script in **string** `path` executed on current  database;
 returns `#f` if a server error occurs or no response is received.
 
 A SQL script file has to have the file extension `.sql`.
 
-### Database Macros
+#### a-upload
+```
+(a-upload path type)
+```
+Returns **boolean** that is true if uploading _JSON_ file at **string** `path`
+into current database as **symbol** `type` succeded;
+returns `#f` if a server error occurs or no response is received.
 
-#### a-import
+A JSON script file has to have the file extension `.json`.
+
+#### a-backup
 ```
-(a-import db url)
+(a-backup)
 ```
-**boolean** that is true if importing from **string** `url` into database **symbol** `db` on the server was successful;
+Returns **boolean** that is true if backing-up current database succeded.
+
+#### a-extract
+```
+(a-extract url)
+```
+**boolean** that is true if importing from **string** `url` into current database succeded;
 returns `#f` if a server error occurs or no response is received.
 
 This function can be a minimalistic ETL (Extract-Transform-Load) tool:
@@ -210,44 +233,33 @@ the extraction and transformation is performed in the remote query,
 while the loading corresponds to the import of the query result.
 The supported formats are [OrientDB, Neo4J, GraphML, GraphSON, XML, CSV, JSON, RDF](https://docs.arcadedb.com/#Importer).
 
-#### a-describe
+#### a-stats
 ```
-(a-describe db)
+(a-stats)
 ```
-Returns **alist** of type descriptions for database **symbol** `db`;
+Returns **list**-of-**alist**s reporting statistics on current database.
 returns `#f` if a server error occurs or no response is received.
 
-This function emulates the SQL `DESCRIBE` statement.
-
-#### a-load
+#### a-health
 ```
-(a-load db path type)
+(a-health)
 ```
-Returns **boolean** that is true if loading _JSON_ file at **string** `path`
-into database **symbol** `db` as **symbol** `type` on the server was successful;
+Returns **list**-of-**alist**s reporting health of current database.
 returns `#f` if a server error occurs or no response is received.
 
-#### a-backup
+#### a-repair
 ```
-(a-backup db)
+(a-repair)
 ```
-Returns **boolean** that is true if backing-up database **symbol** `db` on the server was successful.
-
-#### a-check
-```
-(a-check db)
-(a-check db fix?)
-```
-Returns **list**-of-**alist**s integrity check report, attempts to fix if true **boolean** `fix?` is passed.
-returns `#f` if a server error occurs or no response is received.
+Returns **boolean** that is true if automatic repair succeeded.
 
 #### a-comment
 ```
-(a-comment db)
-(a-comment db msg)
+(a-comment)
+(a-comment msg)
 ```
-Returns **string** current database comment of database **symbol** `db`, if `msg` is not passed;
-returns `#t` if **string** `msg` was set as comment for database **symbol** `db` on the server successfully;
+Returns **string** current database comment of current database, if `msg` is not passed;
+returns `#t` if setting **string** `msg` as comment for current database succeded;
 returns `#f` if no comment is set, a server error occurs or no response is received.
 
 This function emulates the SQL `COMMENT ON DATABASE` statement,
@@ -257,6 +269,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 
 * `0.1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-15)
 * `0.2` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2022-11-16)
+* `0.3` [Major Update](https://github.com/gramian/chicken-arcadedb) (2022-??-??)
 
 ## License
 
