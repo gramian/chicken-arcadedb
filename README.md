@@ -144,12 +144,16 @@ Returns **boolean** answering if database **symbol** `db` exists on the server.
 Returns **boolean** that is true if creating new database **symbol** `db` succeded;
 returns `#f` if a server error occurs or no response is received.
 
+This command can only be executed by the root or admin user.
+
 #### a-delete
 ```
 (a-delete db)
 ```
 Returns **boolean** that is true if deleting database **symbol** `db` succeded;
 returns `#f` if a server error occurs or no response is received.
+
+This command can only be executed by the root or admin user.
 
 ### Database Connection
 
@@ -176,12 +180,16 @@ returns `#f` if no database is connected.
 Returns **list** holding the result of **string** `query` in language **symbol** `lang` on current database;
 returns `#f` if a server error occurs or no response is received.
 
+Valid `lang` **symbols** are: `sql`, `cypher`, `gremlin`, `graphql`, `mongo`.
+
 #### a-command
 ```
 (a-command lang cmd)
 ```
 Returns **list** holding the result of **string** `cmd` in language **symbol** `lang` on current database;
 returns `#f` if a server error occurs or no response is received.
+
+Valid `lang` **symbols** are: `sql`, `sqlscript`, `cypher`, `gremlin`, `graphql`, `mongo`.
 
 ### Database Macros
 
@@ -253,6 +261,13 @@ returns `#f` if a server error occurs or no response is received.
 ```
 Returns **boolean** that is true if automatic repair succeeded.
 
+#### a-metadata
+```
+(a-metadata id key value)
+```
+Returns **boolean** that is true if adding custom attribute
+with **symbol** `key` and **string** `value` to type or property **symbol** `id` succeeded.
+
 #### a-comment
 ```
 (a-comment)
@@ -270,6 +285,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 * `0.1` [Initial Release](https://github.com/gramian/chicken-arcadedb) (2022-11-15)
 * `0.2` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2022-11-16)
 * `0.3` [Major Update](https://github.com/gramian/chicken-arcadedb) (2022-12-09)
+* `0.4` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-01-16)
 
 ## License
 

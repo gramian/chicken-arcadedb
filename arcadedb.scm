@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0.3 (2022-12-09)
+;;@version: 0.4 (2023-01-16)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme
@@ -10,16 +10,11 @@
 
   (a-help
    a-server
-   a-ready?
-   a-version
-   a-list
-   a-exist?
-   a-new
-   a-delete
-   a-use
-   a-using
-   a-query
-   a-command
+   a-ready?  a-version
+   a-list    a-exist?
+   a-new     a-delete
+   a-use     a-using
+   a-query   a-command
    a-schema
    a-script
    a-upload
@@ -28,6 +23,7 @@
    a-stats
    a-health
    a-repair
+   a-metadata
    a-comment)
 
   (import scheme (chicken base) (chicken io) (chicken string) (chicken process) (chicken pathname) uri-common medea)
@@ -49,9 +45,6 @@
 
 (define (result resp)
   (and resp (vector->list (alist-ref 'result resp))))
-
-(define (supported? lang)
-  (memq lang '(sql sqlscript cypher gremlin graphql mongo)))
 
 (define (http method endpoint #!key (body '()) (session #f) (notify #t))
   (let* [(curl "curl -s")
@@ -106,6 +99,7 @@
          " (a-stats)                        - Database statistics\n"
          " (a-health)                       - Database health\n"
          " (a-repair)                       - Repair database\n"
+         " (a-metadata id key value)        - Add metadata\n"
          " (a-comment [msg])                - Database comment\n"
          "\n"
          " For more info see: https://wiki.call-cc.org/eggref/5/arcadedb\n"))
@@ -151,20 +145,20 @@
 ;;@returns: **boolean** that is true if creating new database **symbol** `db` succeded.
 (define (a-new db)
   (assert (and (server) (symbol? db)))
-  (and (not (a-exist? db)) (ok? (http 'post `("create/" ,(symbol->string db))))))
+  (and (not (a-exist? db)) (ok? (http 'post '("server") body: `((command . ,(string-append "create database " (symbol->string db))))))))
 
 ;;@returns: **boolean** that is true if deleting database **symbol** `db` succeded.
 (define (a-delete db)
   (assert (and (server) (symbol? db)))
   (when (eqv? db (active)) (active #f))
-  (and (a-exist? db) (ok? (http 'post `("drop/" ,(symbol->string db))))))
+  (and (a-exist? db) (ok? (http 'post '("server") body: `((command . ,(string-append "drop database " (symbol->string db))))))))
 
 ;;; Database Connection ########################################################
 
 ;;@returns: **boolean** that is true if database **symbol** `db` is connected.
 (define (a-use db)
   (assert (symbol? db))
-  (and (a-exist? db) (ok? (http 'post `("open/" ,(symbol->string db)))) (active db) #t))
+  (and (a-exist? db) (active db) #t))
 
 ;;@returns: **symbol** naming current database, or #f.
 (define (a-using)
@@ -174,12 +168,12 @@
 
 ;;@returns: **list** holding the result of **string** `query` in language **symbol** `lang` on current database, or #f.
 (define (a-query lang query)
-  (assert (and (server) (active) (supported? lang) (string? query)))
+  (assert (and (server) (active) (memq lang '(sql cypher gremlin graphql mongo)) (string? query)))
   (result (http 'get `("query/" ,(symbol->string (active)) "/" ,(symbol->string lang) "/" ,(uri-encode-string query)))))
 
 ;;@returns: **list** holding the result of **string** `cmd` in language **symbol** `lang` on current database, or #f.
 (define (a-command lang cmd)
-  (assert (and (server) (active) (supported? lang) (string? cmd)))
+  (assert (and (server) (active) (memq lang '(sql sqlscript cypher gremlin graphql mongo)) (string? cmd)))
   (result (http 'post `("command/" ,(symbol->string (active))) body: `((language . ,(symbol->string lang))
                                                                         (command . ,cmd)))))
 
@@ -191,22 +185,22 @@
 
 ;;@returns: **list** holding the result of the last statement of the _ArcadeDB SQL_ script in **string** `path`, or #f.
 (define (a-script path)
-  (assert (string-ci=? "sql" (pathname-extension path)))
+  (assert (and (string? path) (string-ci=? "sql" (pathname-extension path))))
   (a-command 'sqlscript (read-string #f (open-input-file path))))
 
-;;@returns: **boolean** that is true if loading _JSON_ file at **string** `path` into current database as **symbol** `type`.
+;;@returns: **boolean** that is true if loading _JSON_ file at **string** `path` into current database as **symbol** `type` succeeded.
 (define (a-upload path type)
   (assert (and (symbol? type) (string? path) (string-ci=? "json" (pathname-extension path))))
   (and (a-command 'sql (string-append "CREATE DOCUMENT TYPE " (symbol->string type) " IF NOT EXISTS;"))
        (a-command 'sql (string-append "INSERT INTO " (symbol->string type) " CONTENT " (read-string #f (open-input-file path)) ";"))
        #t))
 
-;;@returns: **boolean** that is true if backing-up current database.
+;;@returns: **boolean** that is true if backing-up current database succeeded.
 (define (a-backup)
   (let [(res (a-command 'sql "BACKUP DATABASE;"))]
     (and res (not (null? res)) (ok? (car res)))))
 
-;;@returns: **boolean** that is true if importing from **string** `url` into current database as **symbol** `type`.
+;;@returns: **boolean** that is true if importing from **string** `url` into current database as **symbol** `type` succeeded.
 (define (a-extract url)
   (assert (string? url))  
   (let [(res (a-command 'sql (string-append "IMPORT DATABASE " url ";")))]
@@ -232,6 +226,13 @@
 (define (a-repair)
   (not (not (a-command 'sql "CHECK DATABASE FIX;"))))
 
+;;@returns: **boolean** that is true if adding custom attribute with **symbol** `key` and **string** `value` to type or property **symbol** `id` succeeded.
+(define (a-metadata id key value)
+  (assert (and (symbol? id) (symbol? key) (or (string? value) (number? value))))
+  (and (a-command 'sql (string-append "ALTER " (if (substring-index "." (symbol->string id)) "PROPERTY" "TYPE") " " (symbol->string id)
+                                      " CUSTOM " (symbol->string key) " = " (if (string? value) (string-append "\"" value "\"") (number->string value)) ";"))
+       #t))
+
 ;;@returns: **string** comment, or `#t` if **string** `msg` is passed.
 (define (a-comment . msg)
   (and (a-command 'sql (string-append "CREATE DOCUMENT TYPE sys IF NOT EXISTS;"))
@@ -244,4 +245,4 @@
                          (and (string? str)
                               (a-command 'sql (string-append "UPDATE sys SET comment = \"" str "\" UPSERT WHERE on = \"database\";"))
                               #t)))))
-)
+) ; end module
