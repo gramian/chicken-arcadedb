@@ -55,7 +55,7 @@ Naturally, `arcadedb` requires a (running) remote or local **ArcadeDB** server:
 
 * [ArcadeDB](https://github.com/ArcadeData/arcadedb/releases/latest)
 
-which in turn requires a _Java_ distribution, i.e. _OpenJDK_,  in versions 11 up to 15.
+which in turn requires a _Java_ distribution in version 11, i.e. _OpenJDK_.
 A local server setup is described below.
 Furthermore, the `arcadedb` module requires `curl` for the HTTP requests:
 
