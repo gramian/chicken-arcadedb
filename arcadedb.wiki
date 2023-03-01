@@ -56,7 +56,7 @@ Naturally, {{arcadedb}} requires a running remote or local '''ArcadeDB''' server
 
 * [[https://github.com/ArcadeData/arcadedb/releases/latest|ArcadeDB]]
 
-which in turn requires a ''Java'' distribution, i.e. ''OpenJDK'', in versions 11 up to 15.
+which in turn requires a ''Java'' distribution in version 11, i.e. ''OpenJDK''.
 A local server setup is described below.
 Furthermore, the {{arcadedb}} module requires {{curl}} for the HTTP requests:
 
@@ -97,8 +97,8 @@ Returns '''void''', prints help about using the {{arcadedb}} module.
 
 === Server Connection
 
-==== a-connect
-<procedure>(a-connect user pass host . port)</procedure>
+==== a-server
+<procedure>(a-server user pass host . port)</procedure>
 
 Returns '''alist''' with single entry if connection to server using '''string'''s
 {{user}}, {{pass}}, {{host}}, and optionally '''number''' {{port}}, succeded;
@@ -207,13 +207,8 @@ returns {{#f}} if a server error occurs or no response is received.
 
 A JSON script file has to have the file extension {{.json}}.
 
-==== a-backup
-<procedure>(a-backup)</procedure>
-
-Returns '''boolean''' that is true if backing-up current database succeded.
-
-==== a-extract
-<procedure>(a-extract url)</procedure>
+==== a-ingest
+<procedure>(a-ingest url)</procedure>
 
 '''boolean''' that is true if importing from '''string''' {{url}} into current database succeded;
 returns {{#f}} if a server error occurs or no response is received.
@@ -224,6 +219,17 @@ and the query can be encoded ([[https://docs.arcadedb.com/#HTTP-API|as for '''Ar
 the extraction and transformation is performed in the remote query,
 while the loading corresponds to the import of the query result.
 The supported formats are [[https://docs.arcadedb.com/#Importer|OrientDB, Neo4J, GraphML, GraphSON, XML, CSV, JSON, RDF]].
+
+==== a-jaccard
+<procedure>(a-jaccard type x y)</procedure>
+
+Returns '''flonum''' being the [[https://en.wikipedia.org/wiki/Jaccard_index|Jaccard similarity index]],
+given a '''symbol''' {{type}} and two '''symbol''' arguments {{x}} and {{y}}.
+
+==== a-backup
+<procedure>(a-backup)</procedure>
+
+Returns '''boolean''' that is true if backing-up current database succeded.
 
 ==== a-stats
 <procedure>(a-stats)</procedure>
@@ -257,7 +263,7 @@ returns {{#t}} if '''string''' {{msg}} was set as comment for current database s
 returns {{#f}} if no comment is set, a server error occurs or no response is received.
 
 This function emulates the SQL {{COMMENT ON DATABASE}} statement,
-by creating a type {{D}} and upserting or reading the first {{comment}} property.
+by creating a type {{sys}} and upserting or reading the first {{comment}} property.
 
 == Changelog
 
@@ -265,6 +271,7 @@ by creating a type {{D}} and upserting or reading the first {{comment}} property
 * {{0.2}} [[https://github.com/gramian/chicken-arcadedb|Minor Update]] (2022-11-16)
 * {{0.3}} [[https://github.com/gramian/chicken-arcadedb|Major Update]] (2022-12-09)
 * {{0.4}} [[https://github.com/gramian/chicken-arcadedb|Minor Update]] (2023-01-16)
+* {{0.5}} [[https://github.com/gramian/chicken-arcadedb|Major Update]] (2023-03-01)
 
 == License
 

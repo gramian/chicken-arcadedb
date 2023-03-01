@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0.4 (2023-01-16)
+;;@version: 0.5 (2023-03-01)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme
@@ -17,11 +17,10 @@
    a-query   a-command
    a-schema
    a-script
-   a-upload
+   a-upload  a-ingest
+   a-jaccard
    a-backup
-   a-extract
-   a-stats
-   a-health
+   a-stats   a-health
    a-repair
    a-metadata
    a-comment)
@@ -50,7 +49,7 @@
   (let* [(curl "curl -s")
          (type (case method ['get  " -X GET"]
                             ['post " -X POST"]))
-         (head " -H Content-Type: application/json")
+         (head " -H 'Content-Type: application/json'")
          (sess (if session (string-append " -H " session) "")) 
          (data (if (null? body) "" (string-append " -d '" (json->string body) "'")))
          (resp (with-input-from-pipe (apply string-append curl type head sess data  " --user " (secret) " " (server) endpoint)
@@ -94,8 +93,9 @@
          " (a-schema)                       - List types\n"
          " (a-script path)                  - Execute script\n"
          " (a-upload path type)             - Upload document\n"
+         " (a-ingest url type)              - Route request\n"
+         " (a-jaccard x y)                  - Jaccard similarity\n"
          " (a-backup)                       - Backup database\n"
-         " (a-extract url)                  - Route request\n"
          " (a-stats)                        - Database statistics\n"
          " (a-health)                       - Database health\n"
          " (a-repair)                       - Repair database\n"
@@ -123,7 +123,7 @@
 ;;@returns: **string** version number of the server, or #f.
 (define (a-version)
   (assert (server))
-  (let [(resp (http 'get '("databases")))]
+  (let [(resp (http 'get '("server?mode=basic")))]
     (and resp (alist-ref 'version resp))))
 
 ;;; Server Databases ###########################################################
@@ -131,7 +131,7 @@
 ;;@returns: **list** of **symbols** holding available databases, or #f.
 (define (a-list)
   (assert (server))
-  (let [(resp (result (http 'get '("databases"))))]
+  (let [(resp (result (http 'post '("server") body: `((command . ,(string-append "list databases "))))))]
     (and resp (map string->symbol resp))))
 
 ;;@returns: **boolean** answering if database **symbol** `db` exists.
@@ -195,32 +195,32 @@
        (a-command 'sql (string-append "INSERT INTO " (symbol->string type) " CONTENT " (read-string #f (open-input-file path)) ";"))
        #t))
 
+;;@returns: **boolean** that is true if importing from **string** `url` into current database as **symbol** `type` succeeded.
+(define (a-ingest url type)
+  (assert (and (string? url) (symbol? type))) 
+  (let* [(res (a-command 'sql (string-append "IMPORT DATABASE " url " WITH documentType = '" (symbol->string type) "';")))]
+    (and res (not (null? res)) (ok? (car res)))))
+
+;;@returns **flonum** being the Jaccard similarity index, given a **symbol** `type` and two **symbol** arguments `x` and `y`.
+(define (a-jaccard type x y)
+  (assert (and (symbol? type) (symbol? x) (symbol? y)))
+  (cdaar (a-command 'sqlscript (string-append "LET $t = SELECT unionall(" (symbol->string x) ") AS x, unionall(" (symbol->string y) ") AS y FROM " (symbol->string type)";"
+                                              "SELECT intersect($t[0].x,$t[0].y).size().asFloat() / unionall($t[0].x,$t[0].y).size().asFloat();"))))
+
 ;;@returns: **boolean** that is true if backing-up current database succeeded.
 (define (a-backup)
   (let [(res (a-command 'sql "BACKUP DATABASE;"))]
     (and res (not (null? res)) (ok? (car res)))))
 
-;;@returns: **boolean** that is true if importing from **string** `url` into current database as **symbol** `type` succeeded.
-(define (a-extract url)
-  (assert (string? url))  
-  (let [(res (a-command 'sql (string-append "IMPORT DATABASE " url ";")))]
-    (and res (not (null? res)) (ok? (car res)))))  
-
 ;;@returns: **list**-of-**alist**s reporting statistics on current database, or #f.
 (define (a-stats)
-  (a-command 'sqlscript "LET $a = CHECK DATABASE;
-                         SELECT $a.totalActiveDocuments[0] AS nDocuments,
-                                $a.totalActiveVertices[0] AS nVertices,
-                                $a.totalActiveEdges[0] AS nEdges, 
-                                $a.totalDeletedRecords[0] AS nDeleted;"))
+  (a-command 'sqlscript "LET a = CHECK DATABASE;
+                         SELECT $a.totalActiveDocuments[0] AS nDocuments, $a.totalActiveVertices[0] AS nVertices, $a.totalActiveEdges[0] AS nEdges, $a.totalDeletedRecords[0] AS nDeleted;"))
 
 ;;@returns: **list**-of-**alist**s reporting health of current database, or #f.
 (define (a-health)
-  (a-command 'sqlscript "LET $a = CHECK DATABASE;
-                         SELECT $a.warnings[0].size() AS nWarnings,
-                                $a.totalErrors[0] AS nErrors,
-                                $a.corruptedRecords[0].size() AS nCorruptedRecords,
-                                $a.invalidLinks[0] AS nInvalidLinks;"))
+  (a-command 'sqlscript "LET a = CHECK DATABASE;
+                         SELECT $a[0].warnings.size() AS nWarnings, $a[0].totalErrors AS nErrors, $a[0].corruptedRecords.size() AS nCorrupted, $a[0].invalidLinks AS nInvalid;"))
 
 ;;@returns: **boolean** that is true if automatic repair succeeded.
 (define (a-repair)
@@ -230,19 +230,13 @@
 (define (a-metadata id key value)
   (assert (and (symbol? id) (symbol? key) (or (string? value) (number? value))))
   (and (a-command 'sql (string-append "ALTER " (if (substring-index "." (symbol->string id)) "PROPERTY" "TYPE") " " (symbol->string id)
-                                      " CUSTOM " (symbol->string key) " = " (if (string? value) (string-append "\"" value "\"") (number->string value)) ";"))
-       #t))
+                                      " CUSTOM " (symbol->string key) " = " (if (string? value) (string-append "\"" value "\"") (number->string value)) ";")) #t))
 
 ;;@returns: **string** comment, or `#t` if **string** `msg` is passed.
 (define (a-comment . msg)
   (and (a-command 'sql (string-append "CREATE DOCUMENT TYPE sys IF NOT EXISTS;"))
        (if (null? msg) (let [(res (a-query 'sql (string-append "SELECT comment FROM sys WHERE on = \"database\" LIMIT 1;")))]
-                         (and res
-                              (not (null? res))
-                              (not (null? (car res)))
-                              (alist-ref 'comment (car res))))
+                         (and res (not (null? res)) (not (null? (car res))) (alist-ref 'comment (car res))))
                        (let [(str (car msg))]
-                         (and (string? str)
-                              (a-command 'sql (string-append "UPDATE sys SET comment = \"" str "\" UPSERT WHERE on = \"database\";"))
-                              #t)))))
+                         (and (string? str) (a-command 'sql (string-append "UPDATE sys SET comment = \"" str "\" UPSERT WHERE on = \"database\";")) #t)))))
 ) ; end module

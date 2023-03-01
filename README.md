@@ -97,9 +97,9 @@ Returns **void**, prints help about using the `arcadedb` module.
 
 ### Server Connection
 
-#### a-connect
+#### a-server
 ```
-(a-connect user pass host . port)
+(a-server user pass host . port)
 ```
 Returns **alist** with single entry if connection to server using **string**s
 `user`, `pass`, `host`, and optionally **number** `port`, succeded;
@@ -221,17 +221,11 @@ returns `#f` if a server error occurs or no response is received.
 
 A JSON script file has to have the file extension `.json`.
 
-#### a-backup
+#### a-ingest
 ```
-(a-backup)
+(a-ingest url)
 ```
-Returns **boolean** that is true if backing-up current database succeded.
-
-#### a-extract
-```
-(a-extract url)
-```
-**boolean** that is true if importing from **string** `url` into current database succeded;
+Returns **boolean** that is true if importing from **string** `url` into current database succeded;
 returns `#f` if a server error occurs or no response is received.
 
 This function can be a minimalistic ETL (Extract-Transform-Load) tool:
@@ -240,6 +234,19 @@ and the query can be encoded ([as for **ArcadeDB**](https://docs.arcadedb.com/#H
 the extraction and transformation is performed in the remote query,
 while the loading corresponds to the import of the query result.
 The supported formats are [OrientDB, Neo4J, GraphML, GraphSON, XML, CSV, JSON, RDF](https://docs.arcadedb.com/#Importer).
+
+#### a-jaccard
+```
+(a-jaccard type x y)
+```
+Returns **flonum** being the [Jaccard similarity index](https://en.wikipedia.org/wiki/Jaccard_index),
+given a **symbol** `type` and two **symbol** arguments `x` and `y`.
+
+#### a-backup
+```
+(a-backup)
+```
+Returns **boolean** that is true if backing-up current database succeded.
 
 #### a-stats
 ```
@@ -278,7 +285,7 @@ returns `#t` if setting **string** `msg` as comment for current database succede
 returns `#f` if no comment is set, a server error occurs or no response is received.
 
 This function emulates the SQL `COMMENT ON DATABASE` statement,
-by creating a type `D` and upserting or reading the first `comment` property.
+by creating a type `sys` and upserting or reading the first `comment` property.
 
 ## Changelog
 
@@ -286,6 +293,7 @@ by creating a type `D` and upserting or reading the first `comment` property.
 * `0.2` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2022-11-16)
 * `0.3` [Major Update](https://github.com/gramian/chicken-arcadedb) (2022-12-09)
 * `0.4` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-01-16)
+* `0.5` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-03-01)
 
 ## License
 
