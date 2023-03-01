@@ -7,13 +7,13 @@ for the [[https://arcadedb.com|'''ArcadeDB''']] database.
 
 == About '''ArcadeDB'''
 
-'''ArcadeDB''' is a multi-model NoSQL database providing the models:
+'''ArcadeDB''' is a multi-model NoSQL / NewSQL database providing the models:
 
 * Key-Value,
 * Document,
 * Graph,
 
-while supporting a wide range of data query languages, such as:
+while supporting a range of data query languages, such as:
 
 * [[https://docs.arcadedb.com/#_sql|SQL]] (dialect),
 * [[https://opencypher.org/resources/|Cypher]],
@@ -21,7 +21,7 @@ while supporting a wide range of data query languages, such as:
 * [[https://graphql.org/|GraphQL]],
 * [[https://www.mongodb.com/docs/manual/|MQL]] (Mongo)
 
-as well as providing a JSON/REST/HTTP API.
+as well as providing a JSON / REST / HTTP API.
 
 === SQL
 
