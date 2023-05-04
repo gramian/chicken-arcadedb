@@ -6,7 +6,7 @@ for the [**ArcadeDB**](https://arcadedb.com) database.
 
 ## About **ArcadeDB**
 
-**ArcadeDB** is a multi-model NoSQL / NewSQL database providing the models:
+**ArcadeDB** is a multi-model NoSQL database providing the models:
 
 * Key-Value,
 * Document,
@@ -20,7 +20,7 @@ while supporting a range of data query languages, such as:
 * [GraphQL](https://graphql.org/),
 * [MQL](https://www.mongodb.com/docs/manual/) (Mongo),
 
-as well as providing a JSON / REST / HTTP API.
+as well as providing a JSON / REST-like / HTTP API.
 
 ### SQL
 
@@ -193,11 +193,18 @@ Valid `lang` **symbols** are: `sql`, `sqlscript`, `cypher`, `gremlin`, `graphql`
 
 ### Database Macros
 
+#### a-config
+```
+(a-config)
+```
+Returns **alist** of type descriptions for current database infos;
+returns `#f` if a server error occurs or no response is received.
+
 #### a-schema
 ```
 (a-schema)
 ```
-Returns **alist** of type descriptions for current database;
+Returns **alist** of type descriptions for current database schema;
 returns `#f` if a server error occurs or no response is received.
 
 This function emulates the SQL `DESCRIBE` statement.
@@ -294,6 +301,7 @@ by creating a type `sys` and upserting or reading the first `comment` property.
 * `0.3` [Major Update](https://github.com/gramian/chicken-arcadedb) (2022-12-09)
 * `0.4` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-01-16)
 * `0.5` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-03-01)
+* `0.6` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-05-05)
 
 ## License
 

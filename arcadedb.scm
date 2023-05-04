@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0.5 (2023-03-01)
+;;@version: 0.6 (2023-05-05)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme
@@ -10,17 +10,17 @@
 
   (a-help
    a-server
-   a-ready?  a-version
-   a-list    a-exist?
-   a-new     a-delete
-   a-use     a-using
-   a-query   a-command
-   a-schema
+   a-ready?   a-version
+   a-list     a-exist?
+   a-new      a-delete
+   a-use      a-using
+   a-query    a-command
+   a-config   a-schema
    a-script
-   a-upload  a-ingest
+   a-upload   a-ingest
    a-jaccard
    a-backup
-   a-stats   a-health
+   a-stats    a-health
    a-repair
    a-metadata
    a-comment)
@@ -47,7 +47,8 @@
 
 (define (http method endpoint #!key (body '()) (session #f) (notify #t))
   (let* [(curl "curl -s")
-         (type (case method ['get  " -X GET"]
+         (type (case method ['head " -X HEAD"]
+                            ['get  " -X GET"]
                             ['post " -X POST"]))
          (head " -H 'Content-Type: application/json'")
          (sess (if session (string-append " -H " session) "")) 
@@ -62,7 +63,7 @@
 
 ;;; Help Message ###############################################################
 
-;;@returns: **void**, prints help about arcadedb module functions.
+;;@returns: **void**, prints help about using the `arcadedb` module.
 (define (a-help)
   (print "\n"
          " ╔══════════════════╗\n"
@@ -90,6 +91,7 @@
          " (a-query lang query)             - Database query\n"
          " (a-command lang cmd)             - Database command\n"
          "\n"
+         " (a-config)                       - Database configuration\n"
          " (a-schema)                       - List types\n"
          " (a-script path)                  - Execute script\n"
          " (a-upload path type)             - Upload document\n"
@@ -111,14 +113,14 @@
   (assert (and (string? user) (string? pass) (string? host)))
   (server (string-append "http://" host ":" (number->string (optional port 2480)) "/api/v1/"))
   (secret (string-append user ":" pass))
-  (if (a-ready?) '((arcadedb . "Welcome")) #f))
+  '((arcadedb . "Hello")))
 
 ;;; Server Information #########################################################
 
 ;;@returns: **boolean** answering if server is ready.
 (define (a-ready?)
   (assert (server))
-  (not (not (http 'get '("server")))))
+  (not (not (http 'head '("ready")))))
 
 ;;@returns: **string** version number of the server, or #f.
 (define (a-version)
@@ -131,7 +133,7 @@
 ;;@returns: **list** of **symbols** holding available databases, or #f.
 (define (a-list)
   (assert (server))
-  (let [(resp (result (http 'post '("server") body: `((command . ,(string-append "list databases "))))))]
+  (let [(resp (result (http 'post '("server") body: `((command . ,(string-append "list databases"))))))]
     (and resp (map string->symbol resp))))
 
 ;;@returns: **boolean** answering if database **symbol** `db` exists.
@@ -169,15 +171,20 @@
 ;;@returns: **list** holding the result of **string** `query` in language **symbol** `lang` on current database, or #f.
 (define (a-query lang query)
   (assert (and (server) (active) (memq lang '(sql cypher gremlin graphql mongo)) (string? query)))
-  (result (http 'get `("query/" ,(symbol->string (active)) "/" ,(symbol->string lang) "/" ,(uri-encode-string query)))))
+  (result (http 'post `("query/" ,(symbol->string (active))) body: `((language . ,(symbol->string lang))
+                                                                     (command . ,query)))))
 
 ;;@returns: **list** holding the result of **string** `cmd` in language **symbol** `lang` on current database, or #f.
 (define (a-command lang cmd)
   (assert (and (server) (active) (memq lang '(sql sqlscript cypher gremlin graphql mongo)) (string? cmd)))
   (result (http 'post `("command/" ,(symbol->string (active))) body: `((language . ,(symbol->string lang))
-                                                                        (command . ,cmd)))))
+                                                                       (command . ,cmd)))))
 
 ;;; Database Macros ############################################################
+
+;;@returns: **string** infos about connected database, or #f.
+(define (a-config)
+  (a-query 'sql "SELECT FROM schema:database")) 
 
 ;;@returns: **alist** of type descriptions for current database, or #f.
 (define (a-schema)
@@ -204,8 +211,8 @@
 ;;@returns **flonum** being the Jaccard similarity index, given a **symbol** `type` and two **symbol** arguments `x` and `y`.
 (define (a-jaccard type x y)
   (assert (and (symbol? type) (symbol? x) (symbol? y)))
-  (cdaar (a-command 'sqlscript (string-append "LET $t = SELECT unionall(" (symbol->string x) ") AS x, unionall(" (symbol->string y) ") AS y FROM " (symbol->string type)";"
-                                              "SELECT intersect($t[0].x,$t[0].y).size().asFloat() / unionall($t[0].x,$t[0].y).size().asFloat();"))))
+  (cdaar (a-command 'sqlscript (string-append "SELECT intersect($t[0].x,$t[0].y).size().asFloat() / unionall($t[0].x,$t[0].y).size().asFloat()"
+                                              "LET $t = (SELECT unionall(" (symbol->string x) ") AS x, unionall(" (symbol->string y) ") AS y FROM " (symbol->string type)");"))))
 
 ;;@returns: **boolean** that is true if backing-up current database succeeded.
 (define (a-backup)
@@ -239,4 +246,5 @@
                          (and res (not (null? res)) (not (null? (car res))) (alist-ref 'comment (car res))))
                        (let [(str (car msg))]
                          (and (string? str) (a-command 'sql (string-append "UPDATE sys SET comment = \"" str "\" UPSERT WHERE on = \"database\";")) #t)))))
+
 ) ; end module
