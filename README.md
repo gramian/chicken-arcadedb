@@ -6,7 +6,7 @@ for the [**ArcadeDB**](https://arcadedb.com) database.
 
 ## About **ArcadeDB**
 
-**ArcadeDB** is a multi-model NoSQL database providing the models:
+**ArcadeDB** is an open-source multi-model NoSQL database providing the models:
 
 * Key-Value,
 * Document,
