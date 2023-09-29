@@ -17,7 +17,7 @@ for the [[https://arcadedb.com|'''ArcadeDB''']] database.
 
 while supporting a range of data query languages, such as:
 
-* [[https://docs.arcadedb.com/#_sql|SQL]] (dialect),
+* [[https://docs.arcadedb.com/#SQL|SQL]] (dialect),
 * [[https://opencypher.org/resources/|Cypher]],
 * [[https://tinkerpop.apache.org/docs/current/|Gremlin]],
 * [[https://graphql.org/|GraphQL]],
@@ -83,7 +83,7 @@ A local '''ArcadeDB''' server can be set up via [[#install|install]] or [[#conta
 
 === Container
 
-*# Install [[https://www.docker.com/|Docker]]
+*# Install [[https://www.docker.com/|Docker]] or [[https://podman.io/|Podman]] (just replace {{docker}} with {{podman}} below)
 *# Download container: {{docker pull arcadedata/arcadedb}}
 *# Start container: {{docker run --rm -d -p 2480:2480 -e JAVA_OPTS="-Darcadedb.server.rootPassword=mypassword --name arcadedb0 arcadedata/arcadedb}}
 *# Stop container: {{docker stop arcadedb0}}

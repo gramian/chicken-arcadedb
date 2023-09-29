@@ -16,7 +16,7 @@ for the [**ArcadeDB**](https://arcadedb.com) database.
 
 while supporting a range of data query languages, such as:
 
-* [SQL](https://docs.arcadedb.com/#_sql) (dialect),
+* [SQL](https://docs.arcadedb.com/#SQL) (dialect),
 * [Cypher](https://opencypher.org/resources/),
 * [Gremlin](https://tinkerpop.apache.org/docs/current/),
 * [GraphQL](https://graphql.org/),
@@ -82,7 +82,7 @@ A local **ArcadeDB** server can be set up via [install](#install) or [container]
 
 ### Container
 
-0. Install [Docker](https://www.docker.com/)
+0. Install [Docker](https://www.docker.com/) or [Podman](https://podman.io/) (just replace `docker` with `podman` below)
 1. Download container: `docker pull arcadedata/arcadedb`
 2. Start container: `docker run --rm -d -p 2480:2480 -e JAVA_OPTS="-Darcadedb.server.rootPassword=mypassword --name arcadedb0 arcadedata/arcadedb`
 3. Stop container: `docker stop arcadedb0`
@@ -304,7 +304,7 @@ by creating a type `sys` and upserting or reading the first `comment` property.
 * `0.4` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-01-16)
 * `0.5` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-03-01)
 * `0.6` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-05-05)
-* `0.6` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-09-29)
+* `0.7` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-09-29)
 
 ## License
 
