@@ -11,6 +11,8 @@ for the [**ArcadeDB**](https://arcadedb.com) database.
 * Key-Value,
 * Document,
 * Graph,
+* Time Series,
+* Vector,
 
 while supporting a range of data query languages, such as:
 
@@ -55,11 +57,11 @@ Naturally, `arcadedb` requires a (running) remote or local **ArcadeDB** server:
 
 * [ArcadeDB](https://github.com/ArcadeData/arcadedb/releases/latest)
 
-which in turn requires a _Java_ distribution in version 11, i.e. _OpenJDK_.
+which in turn requires a _Java_ distribution in version 17, i.e. _OpenJDK_ (headless).
 A local server setup is described below.
-Furthermore, the `arcadedb` module requires `curl` for the HTTP requests:
+Furthermore, the `arcadedb` module requires `wget` for the HTTP requests:
 
-* [curl](http://curl.se)
+* [wget](https://www.gnu.org/software/wget/)
 
 during runtime, and imports the `uri-common` egg to url-encode strings,
 as well as the `medea` egg to decode JSON:
@@ -180,7 +182,7 @@ returns `#f` if no database is connected.
 Returns **list** holding the result of **string** `query` in language **symbol** `lang` on current database;
 returns `#f` if a server error occurs or no response is received.
 
-Valid `lang` **symbols** are: `sql`, `cypher`, `gremlin`, `graphql`, `mongo`.
+Valid `lang` **symbols** are: `sql`, `sqlscript`, `cypher`, `gremlin`, `graphql`, `mongo`.
 
 #### a-command
 ```
@@ -302,6 +304,7 @@ by creating a type `sys` and upserting or reading the first `comment` property.
 * `0.4` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-01-16)
 * `0.5` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-03-01)
 * `0.6` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-05-05)
+* `0.6` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-09-29)
 
 ## License
 

@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0.6 (2023-05-05)
+;;@version: 0.7 (2023-09-29)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme
@@ -46,20 +46,18 @@
   (and resp (vector->list (alist-ref 'result resp))))
 
 (define (http method endpoint #!key (body '()) (session #f) (notify #t))
-  (let* [(curl "curl -s")
-         (type (case method ['head " -X HEAD"]
-                            ['get  " -X GET"]
-                            ['post " -X POST"]))
-         (head " -H 'Content-Type: application/json'")
-         (sess (if session (string-append " -H " session) "")) 
-         (data (if (null? body) "" (string-append " -d '" (json->string body) "'")))
-         (resp (with-input-from-pipe (apply string-append curl type head sess data  " --user " (secret) " " (server) endpoint)
-                                     (if (eqv? method 'head) read-lines read-json)))]
-           (cond ((not resp)
-                    (begin (print "No Server Response!") #f))
-                 ((and ((list-of? pair?) resp) (alist-ref 'error resp))
-                    (begin (when notify (print "Server Error: " (alist-ref 'detail resp))) #f))
-                 (else resp))))
+  (let* [(wget "wget -O- -q --auth-no-challenge")
+         (type (case method ['get  " --method=GET"]
+                            ['post " --method=POST"]))
+         (head " --header='Content-Type: application/json'")
+         (sess (if session (string-append " --header=" session) "")) 
+         (data (if (null? body) "" (string-append " --body-data='" (json->string body) "'")))
+         (resp (with-input-from-pipe (apply string-append wget type head sess data " --user=" (car (secret)) " --password=" (cdr (secret)) " " (server) endpoint) read-json))]
+    (cond ((not resp)
+            (begin (print "No Server Response!") #f))
+          ((and ((list-of? pair?) resp) (alist-ref 'error resp))
+            (begin (when notify (print "Server Error: " (alist-ref 'detail resp))) #f))
+          (else resp))))
 
 ;;; Help Message ###############################################################
 
@@ -112,7 +110,7 @@
 (define (a-server user pass host . port)
   (assert (and (string? user) (string? pass) (string? host)))
   (server (string-append "http://" host ":" (number->string (optional port 2480)) "/api/v1/"))
-  (secret (string-append user ":" pass))
+  (secret (cons user pass))
   '((arcadedb . "Hello")))
 
 ;;; Server Information #########################################################
@@ -120,7 +118,7 @@
 ;;@returns: **boolean** answering if server is ready.
 (define (a-ready?)
   (assert (server))
-  (not (not (http 'head '("ready")))))
+  (zero? (system (string-append "wget -q " (server) "ready"))))
 
 ;;@returns: **string** version number of the server, or #f.
 (define (a-version)
@@ -133,7 +131,7 @@
 ;;@returns: **list** of **symbols** holding available databases, or #f.
 (define (a-list)
   (assert (server))
-  (let [(resp (result (http 'post '("server") body: `((command . ,(string-append "list databases"))))))]
+  (let [(resp (result (http 'get '("databases"))))]
     (and resp (map string->symbol resp))))
 
 ;;@returns: **boolean** answering if database **symbol** `db` exists.
@@ -170,7 +168,7 @@
 
 ;;@returns: **list** holding the result of **string** `query` in language **symbol** `lang` on current database, or #f.
 (define (a-query lang query)
-  (assert (and (server) (active) (memq lang '(sql cypher gremlin graphql mongo)) (string? query)))
+  (assert (and (server) (active) (memq lang '(sql sqlscript cypher gremlin graphql mongo)) (string? query)))
   (result (http 'post `("query/" ,(symbol->string (active))) body: `((language . ,(symbol->string lang))
                                                                      (command . ,query)))))
 
