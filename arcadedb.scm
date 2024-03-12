@@ -1,7 +1,7 @@
 ;;;; ArcadeDB CHICKEN Scheme Module
 
 ;;@project: chicken-arcadedb
-;;@version: 0.7 (2023-09-29)
+;;@version: 0.8 (2024-03-12)
 ;;@authors: Christian Himpe (0000-0003-2194-6754)
 ;;@license: zlib-acknowledgement (spdx.org/licenses/zlib-acknowledgement.html)
 ;;@summary: An ArcadeDB database driver for CHICKEN Scheme
@@ -9,7 +9,7 @@
 (module arcadedb
 
   (a-help
-   a-server
+   a-server   a-clear
    a-ready?   a-version
    a-list     a-exist?
    a-new      a-delete
@@ -22,10 +22,9 @@
    a-backup
    a-stats    a-health
    a-repair
-   a-metadata
-   a-comment)
+   a-metadata a-comment)
 
-  (import scheme (chicken base) (chicken io) (chicken string) (chicken process) (chicken pathname) uri-common medea)
+  (import scheme (chicken base) (chicken io) (chicken string) (chicken process) (chicken pathname) medea)
 
 (print "\n; arcadedb: call `(a-help)` for a procedure overview.\n")
 
@@ -73,6 +72,7 @@
          " (a-help)                         - Display this message\n"
          "\n"
          " (a-server user pass host . port) - Set remote server\n"
+         " (a-clear)                        - Unset server\n"
          "\n"
          " (a-ready?)                       - Is server ready?\n"
          " (a-version)                      - Server version\n"
@@ -84,7 +84,7 @@
          " (a-delete db)                    - Drop database\n"
          "\n"
          " (a-use db)                       - Connect database\n"
-         " (a-using)                        - Connected database\n"
+         " (a-using)                        - Get connected database\n"
          "\n"
          " (a-query lang query)             - Database query\n"
          " (a-command lang cmd)             - Database command\n"
@@ -99,8 +99,8 @@
          " (a-stats)                        - Database statistics\n"
          " (a-health)                       - Database health\n"
          " (a-repair)                       - Repair database\n"
-         " (a-metadata id key value)        - Add metadata\n"
-         " (a-comment [msg])                - Database comment\n"
+         " (a-metadata id key . value)      - Get or set custom metadata\n"
+         " (a-comment . msg)                - Get or set database comment\n"
          "\n"
          " For more info see: https://wiki.call-cc.org/eggref/5/arcadedb\n"))
 
@@ -112,6 +112,12 @@
   (server (string-append "http://" host ":" (number->string (optional port 2480)) "/api/v1/"))
   (secret (cons user pass))
   '((arcadedb . "Hello")))
+
+;;@returns: `true`, after clearing internal parameters `server` and `secret`.
+(define (a-clear)
+  (server #f)
+  (secret #f)
+  #t)
 
 ;;; Server Information #########################################################
 
@@ -209,8 +215,8 @@
 ;;@returns **flonum** being the Jaccard similarity index, given a **symbol** `type` and two **symbol** arguments `x` and `y`.
 (define (a-jaccard type x y)
   (assert (and (symbol? type) (symbol? x) (symbol? y)))
-  (cdaar (a-command 'sqlscript (string-append "SELECT intersect($t[0].x,$t[0].y).size().asFloat() / unionall($t[0].x,$t[0].y).size().asFloat()"
-                                              "LET $t = (SELECT unionall(" (symbol->string x) ") AS x, unionall(" (symbol->string y) ") AS y FROM " (symbol->string type)");"))))
+  (cdaar (a-command 'sql (string-append "SELECT intersect($t[0].x,$t[0].y).size().asFloat() / unionall($t[0].x,$t[0].y).size().asFloat()"
+                                        "LET $t = (SELECT unionall(" (symbol->string x) ") AS x, unionall(" (symbol->string y) ") AS y FROM " (symbol->string type)");"))))
 
 ;;@returns: **boolean** that is true if backing-up current database succeeded.
 (define (a-backup)
@@ -232,17 +238,18 @@
   (not (not (a-command 'sql "CHECK DATABASE FIX;"))))
 
 ;;@returns: **boolean** that is true if adding custom attribute with **symbol** `key` and **string** `value` to type or property **symbol** `id` succeeded.
-(define (a-metadata id key value)
-  (assert (and (symbol? id) (symbol? key) (or (string? value) (number? value))))
-  (and (a-command 'sql (string-append "ALTER " (if (substring-index "." (symbol->string id)) "PROPERTY" "TYPE") " " (symbol->string id)
-                                      " CUSTOM " (symbol->string key) " = " (if (string? value) (string-append "\"" value "\"") (number->string value)) ";")) #t))
+(define (a-metadata id key . value)
+  (assert (and (symbol? id) (symbol? key)))
+  (if (null? value)
+    (let [(res (a-query 'sql (string-append "SELECT custom." (symbol->string key) " FROM schema:types WHERE name = \"" (symbol->string id) "\";")))]
+      (and (not (null? res)) (not (eqv? (cdaar res) 'null)) (cdaar res)))
+    (and (a-command 'sql (string-append "ALTER " (if (substring-index "." (symbol->string id)) "PROPERTY" "TYPE") " " (symbol->string id)
+                                        " CUSTOM " (symbol->string key) " = " (if (string? (car value)) (string-append "\"" (car value) "\"") (number->string (car value))) ";")) #t)))
 
 ;;@returns: **string** comment, or `#t` if **string** `msg` is passed.
 (define (a-comment . msg)
-  (and (a-command 'sql (string-append "CREATE DOCUMENT TYPE sys IF NOT EXISTS;"))
-       (if (null? msg) (let [(res (a-query 'sql (string-append "SELECT comment FROM sys WHERE on = \"database\" LIMIT 1;")))]
-                         (and res (not (null? res)) (not (null? (car res))) (alist-ref 'comment (car res))))
-                       (let [(str (car msg))]
-                         (and (string? str) (a-command 'sql (string-append "UPDATE sys SET comment = \"" str "\" UPSERT WHERE on = \"database\";")) #t)))))
+  (and (a-command 'sql (string-append "CREATE VERTEX TYPE " (symbol->string (active)) " IF NOT EXISTS;"))
+       (if (null? msg) (a-metadata (active) 'comment)
+                       (a-metadata (active) 'comment (car msg)))))
 
 ) ; end module

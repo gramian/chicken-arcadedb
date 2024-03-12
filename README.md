@@ -29,14 +29,15 @@ as well as providing a JSON / REST-like / HTTP API.
 The native query language of **ArcadeDB** is a dialect of SQL, closely related to
 _OrientDB_'s OSQL, which supports the [SQL command categories](https://www.geeksforgeeks.org/sql-ddl-dql-dml-dcl-tcl-commands/):
 
-* **DDL** - Data Definition Language, via `CREATE`, `DROP`, `ALTER`, `TRUNCATE` of `TYPE`s
+* **DDL** - Data Definition Language, via `CREATE`, `DROP`, `ALTER`, `TRUNCATE` of `TYPE`s and `PROPERTY`s
 * **DQL** - Data Query Language, via `SELECT`, `TRAVERSE`, `MATCH`
-* **DML** - Data Manipulation Language, via `INSERT`, `UPDATE`, `DROP`, `EXPLAIN`, `PROFILE`
+* **DML** - Data Manipulation Language, via `INSERT`, `UPDATE`, `DROP`, `CREATE VERTEX`, `CREATE EDGE`, `MOVE VERTEX`
+* **TCL** - Transaction Control Language, via `BEGIN`, `COMMIT`, `ROLLBACK`
 
-for the remaining categories holds:
+for the remaining category holds:
 
 * **DCL** - Data Control Language, does not apply due to only [server level users](https://docs.arcadedb.com/#Security)
-* **TCL** - Transaction Control Language, via [HTTP REST endpoints](https://docs.arcadedb.com/#HTTP-API)
+
 
 ## About `arcadedb`
 
@@ -63,10 +64,8 @@ Furthermore, the `arcadedb` module requires `wget` for the HTTP requests:
 
 * [wget](https://www.gnu.org/software/wget/)
 
-during runtime, and imports the `uri-common` egg to url-encode strings,
-as well as the `medea` egg to decode JSON:
+during runtime, and imports the `medea` egg to decode JSON:
 
-* [uri-common](https://wiki.call-cc.org/eggref/5/uri-common)
 * [medea](https://wiki.call-cc.org/eggref/5/medea)
 
 ## Local Server Setup
@@ -106,6 +105,13 @@ Returns **void**, prints help about using the `arcadedb` module.
 Returns **alist** with single entry if connection to server using **string**s
 `user`, `pass`, `host`, and optionally **number** `port`, succeded;
 returns `#f` if a server error occurs or no response is received.
+
+#### a-clear
+```
+(a-clear)
+```
+
+Returns `true` after clearing internal parameters `server` and `secret`.
 
 ### Server Information
 
@@ -279,19 +285,20 @@ Returns **boolean** that is true if automatic repair succeeded.
 
 #### a-metadata
 ```
-(a-metadata id key value)
+(a-metadata id key . value)
 ```
-Returns **boolean** that is true if adding custom attribute
-with **symbol** `key` and **string** `value` to type or property **symbol** `id` succeeded.
+Returns the value of the custom attribute with **symbol** `key` of type or property **symbol** `id`,
+if `value` is not passed.
+Returns **boolean** that is true if setting custom attribute **symbol** `key`
+with **string** or **number** `value` succeded.
 
 #### a-comment
 ```
 (a-comment)
-(a-comment msg)
+(a-comment . msg)
 ```
-Returns **string** current database comment of current database, if `msg` is not passed;
-returns `#t` if setting **string** `msg` as comment for current database succeded;
-returns `#f` if no comment is set, a server error occurs or no response is received.
+Returns **string** being database comment of current database, if **string** `msg` is not passed.
+Returns **boolean** that is true if setting database comment **string** `msg` succeded.
 
 This function emulates the SQL `COMMENT ON DATABASE` statement,
 by creating a type `sys` and upserting or reading the first `comment` property.
@@ -305,6 +312,7 @@ by creating a type `sys` and upserting or reading the first `comment` property.
 * `0.5` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-03-01)
 * `0.6` [Major Update](https://github.com/gramian/chicken-arcadedb) (2023-05-05)
 * `0.7` [Minor Update](https://github.com/gramian/chicken-arcadedb) (2023-09-29)
+* `0.8` [Major Update](https://github.com/gramian/chicken-arcadedb) (2024-03-12)
 
 ## License
 
